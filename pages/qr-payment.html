@@ -221,11 +221,22 @@
           clearInterval(timer);
           expired = true;
           confirmBtn.disabled = true;
-          session.set(
-            "errorReason",
-            "QR code expired. Please start a new payment.",
-          );
-          window.location.href = "error.html";
+
+          // Log QR code expiry as a failed transaction
+          (async () => {
+            try {
+              const txn = await api.createPayment(
+                amount,
+                "qr",
+                "QR code expired. Please start a new payment.",
+              );
+              session.set("errorReason", txn.failure_reason);
+              window.location.href = "error.html";
+            } catch {
+              session.set("errorReason", "Connection lost. Please try again.");
+              window.location.href = "error.html";
+            }
+          })();
         }
       }, 1000);
 

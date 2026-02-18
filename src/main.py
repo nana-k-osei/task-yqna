@@ -40,6 +40,7 @@ def generate_reference(transactions):
 class PaymentRequest(BaseModel):
     amount: float
     payment_method: str  # "debit-card" or "qr"
+    failure_reason: str | None = None
 
 
 # --- API Endpoints ---
@@ -55,8 +56,12 @@ def get_merchant():
 def create_payment(payment: PaymentRequest):
     db = read_db()
 
+    # If failure_reason is provided, record as failed transaction immediately
+    if payment.failure_reason:
+        failure_reason = payment.failure_reason
+        status = "failed"
     # Validation constraints
-    if payment.amount <= 0:
+    elif payment.amount <= 0:
         failure_reason = "Invalid amount. Must be greater than 0."
         status = "failed"
     elif payment.amount > 5000:

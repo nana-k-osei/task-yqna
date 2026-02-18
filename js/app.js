@@ -9,11 +9,15 @@ const api = {
         return res.json();
     },
 
-    async createPayment(amount, paymentMethod) {
+    async createPayment(amount, paymentMethod, failureReason = null) {
         const res = await fetch(`${API_BASE}/api/payments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: parseFloat(amount), payment_method: paymentMethod })
+            body: JSON.stringify({
+                amount: parseFloat(amount),
+                payment_method: paymentMethod,
+                failure_reason: failureReason
+            })
         });
         if (!res.ok) throw new Error('Payment request failed');
         return res.json();
