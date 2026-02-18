@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimplePOS – Checkout</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="logo">
+          <span class="logo-name">SimplePOS</span>
+          <span class="logo-merchant merchant-name">Loading...</span>
+        </div>
+        <div class="header-actions">
+          <a
+            href="pages/transactions.html"
+            class="icon-btn"
+            data-label="Transactions"
+            title="Transactions"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div>
+          <p class="page-title">New Payment</p>
+          <p class="page-subtitle">Enter the amount to charge</p>
+        </div>
+
+        <div class="amount-display">
+          <div>
+            <span class="currency-symbol">£</span
+            ><span class="amount-value" id="amountDisplay">0.00</span>
+          </div>
+          <p class="amount-label">Amount to charge</p>
+        </div>
+
+        <div id="inlineError" class="inline-error">
+          <span id="errorIcon"></span>
+          <span id="errorMsg"></span>
+        </div>
+
+        <div class="numpad">
+          <button class="numpad-btn" data-val="1">1</button>
+          <button class="numpad-btn" data-val="2">2</button>
+          <button class="numpad-btn" data-val="3">3</button>
+          <button class="numpad-btn" data-val="4">4</button>
+          <button class="numpad-btn" data-val="5">5</button>
+          <button class="numpad-btn" data-val="6">6</button>
+          <button class="numpad-btn" data-val="7">7</button>
+          <button class="numpad-btn" data-val="8">8</button>
+          <button class="numpad-btn" data-val="9">9</button>
+          <button class="numpad-btn zero" data-val="0">0</button>
+          <button
+            class="numpad-btn delete"
+            id="deleteBtn"
+            type="button"
+            title="Delete"
+          ></button>
+        </div>
+
+        <button class="btn btn-primary btn-large" id="chargeBtn" disabled>
+          Charge Customer
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+      // Amount is stored in pence (integer) to avoid float issues
+      let amountPence = 0;
+
+      const display = document.getElementById("amountDisplay");
+      const chargeBtn = document.getElementById("chargeBtn");
+      const deleteBtn = document.getElementById("deleteBtn");
+      const errBox = document.getElementById("inlineError");
+      const errMsg = document.getElementById("errorMsg");
+      const errIcon = document.getElementById("errorIcon");
+
+      deleteBtn.innerHTML = icons.delete;
+      errIcon.innerHTML = icons.alert;
+
+      function updateDisplay() {
+        const pounds = (amountPence / 100).toFixed(2);
+        display.textContent = pounds;
+        chargeBtn.disabled = amountPence === 0;
+        errBox.classList.remove("visible");
+      }
+
+      document.querySelectorAll(".numpad-btn[data-val]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.dataset.val;
+          if (amountPence === 0 && val === "0") return; // no leading zeros
+          if (amountPence.toString().length >= 7) return; // max £99,999.99
+          amountPence = parseInt(amountPence.toString() + val, 10);
+          updateDisplay();
+        });
+      });
+
+      deleteBtn.addEventListener("click", () => {
+        const str = amountPence.toString();
+        amountPence = str.length <= 1 ? 0 : parseInt(str.slice(0, -1), 10);
+        updateDisplay();
+      });
+
+      chargeBtn.addEventListener("click", () => {
+        const amount = amountPence / 100;
+
+        if (amount <= 0) {
+          errMsg.textContent =
+            "Invalid amount. Please enter an amount greater than £0.";
+          errBox.classList.add("visible");
+          return;
+        }
+
+        if (amount > 5000) {
+          errMsg.textContent =
+            "Transaction limit exceeded. Maximum charge is £5,000.";
+          errBox.classList.add("visible");
+          return;
+        }
+
+        session.set("pendingAmount", amount);
+        window.location.href = "pages/payment-method.html";
+      });
+    </script>
+  </body>
+</html>

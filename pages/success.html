@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimplePOS – Payment Successful</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <style>
+      .success-icon {
+        animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(0);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .detail-card {
+        animation: slide-up 0.4s ease 0.2s both;
+      }
+      @keyframes slide-up {
+        from {
+          transform: translateY(16px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="logo">
+          <span class="logo-name">SimplePOS</span>
+          <span class="logo-merchant merchant-name">Loading...</span>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div class="status-screen" style="padding: 24px 0 0">
+          <div class="status-icon success success-icon">
+            <svg
+              width="44"
+              height="44"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#00C48C"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div>
+            <p class="status-title">Payment Successful</p>
+            <p class="status-subtitle" id="amountLine">Transaction completed</p>
+          </div>
+        </div>
+
+        <div class="card detail-card">
+          <div class="detail-row">
+            <span class="detail-label">Reference</span>
+            <span class="detail-value" id="txnRef">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount</span>
+            <span class="detail-value" id="txnAmount">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Method</span>
+            <span class="detail-value" id="txnMethod">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Time</span>
+            <span class="detail-value" id="txnTime">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status</span>
+            <span class="badge badge-success">✓ Approved</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-large" id="newPaymentBtn">
+          New Payment
+        </button>
+
+        <a href="transactions.html" class="btn btn-secondary">
+          View Transactions
+        </a>
+      </main>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script>
+      const txn = session.get("lastTransaction");
+      if (!txn) {
+        window.location.href = "../index.html";
+      }
+
+      document.getElementById("amountLine").textContent =
+        `${formatAmount(txn.amount)} charged successfully`;
+      document.getElementById("txnRef").textContent = txn.reference;
+      document.getElementById("txnAmount").textContent = formatAmount(
+        txn.amount,
+      );
+      document.getElementById("txnMethod").textContent =
+        txn.payment_method === "card" ? "Debit Card" : "QR Code";
+      document.getElementById("txnTime").textContent = formatDateTime(
+        txn.timestamp,
+      );
+
+      document.getElementById("newPaymentBtn").addEventListener("click", () => {
+        session.clear(
+          "pendingAmount",
+          "paymentMethod",
+          "lastTransaction",
+          "errorReason",
+        );
+        window.location.href = "../index.html";
+      });
+    </script>
+  </body>
+</html>

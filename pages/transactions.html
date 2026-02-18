@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimplePOS – Transactions</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="logo">
+          <span class="logo-name">SimplePOS</span>
+          <span class="logo-merchant merchant-name">Loading...</span>
+        </div>
+        <div class="header-actions">
+          <a
+            href="../index.html"
+            class="icon-btn"
+            data-label="New Payment"
+            title="New Payment"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div>
+          <p class="page-title">Transactions</p>
+          <p class="page-subtitle">All payments processed today</p>
+        </div>
+
+        <!-- Summary strip -->
+        <div
+          style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px"
+          id="summaryStrip"
+        >
+          <div class="card-flat" style="text-align: center; padding: 16px 10px">
+            <p
+              style="
+                font-family: &quot;Syne&quot;, sans-serif;
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--navy);
+              "
+              id="totalCount"
+            >
+              —
+            </p>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 3px">
+              Total
+            </p>
+          </div>
+          <div class="card-flat" style="text-align: center; padding: 16px 10px">
+            <p
+              style="
+                font-family: &quot;Syne&quot;, sans-serif;
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--green);
+              "
+              id="successCount"
+            >
+              —
+            </p>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 3px">
+              Approved
+            </p>
+          </div>
+          <div class="card-flat" style="text-align: center; padding: 16px 10px">
+            <p
+              style="
+                font-family: &quot;Syne&quot;, sans-serif;
+                font-size: 20px;
+                font-weight: 800;
+                color: var(--red);
+              "
+              id="failedCount"
+            >
+              —
+            </p>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 3px">
+              Failed
+            </p>
+          </div>
+        </div>
+
+        <div id="txnListContainer">
+          <div style="display: flex; justify-content: center; padding: 40px 0">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script>
+      const methodIcon = (method) =>
+        method === "card"
+          ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`
+          : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg>`;
+
+      const badgeFor = (status) => {
+        if (status === "success")
+          return `<span class="badge badge-success">✓ Approved</span>`;
+        if (status === "refunded")
+          return `<span class="badge badge-refunded">↩ Refunded</span>`;
+        return `<span class="badge badge-failed">✕ Failed</span>`;
+      };
+
+      async function loadTransactions() {
+        try {
+          const transactions = await api.getTransactions();
+
+          // Summary counts
+          const total = transactions.length;
+          const success = transactions.filter(
+            (t) => t.status === "success" || t.status === "refunded",
+          ).length;
+          const failed = transactions.filter(
+            (t) => t.status === "failed",
+          ).length;
+
+          document.getElementById("totalCount").textContent = total;
+          document.getElementById("successCount").textContent = success;
+          document.getElementById("failedCount").textContent = failed;
+
+          const container = document.getElementById("txnListContainer");
+
+          if (transactions.length === 0) {
+            container.innerHTML = `
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p>No transactions yet</p>
+            <p style="font-size:12px">Payments will appear here once processed</p>
+          </div>`;
+            return;
+          }
+
+          container.innerHTML = `<div class="txn-list">${transactions
+            .map(
+              (t) => `
+          <a href="transaction-detail.html?id=${t.id}" class="txn-item">
+            <div class="txn-left">
+              <div class="txn-method-icon">${methodIcon(t.payment_method)}</div>
+              <div>
+                <p class="txn-ref">${t.reference}</p>
+                <p class="txn-time">${formatDateTime(t.timestamp)}</p>
+              </div>
+            </div>
+            <div class="txn-right">
+              <p class="txn-amount">${formatAmount(t.amount)}</p>
+              ${badgeFor(t.status)}
+            </div>
+          </a>`,
+            )
+            .join("")}</div>`;
+        } catch {
+          document.getElementById("txnListContainer").innerHTML = `
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <p>Could not load transactions</p>
+          <p style="font-size:12px">Check your connection and refresh</p>
+        </div>`;
+        }
+      }
+
+      loadTransactions();
+    </script>
+  </body>
+</html>
