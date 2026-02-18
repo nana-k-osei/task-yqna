@@ -156,14 +156,14 @@ Response:
 
 ## Payment Failure Rules
 
-The system implements the following payment failure scenarios:
+The system implements the following failure scenarios that can actually occur:
 
-- **Invalid Amount**: Amount of £0 or less returns "Invalid amount" error
-- **Amount Limit**: Amount exceeding £5000 returns "Transaction limit exceeded" error
-- **QR Timeout**: QR code not confirmed within 30 seconds returns "QR code expired" error
-- **Network Failure**: Simulated connection issues return "Connection lost" error
+- **Charge Button Disabled**: Amount of £0 or less disables the Charge button in the UI; user cannot proceed
+- **Charge Button Blocked**: Amount exceeding £5000 is rejected with error message; user cannot proceed
+- **QR Timeout**: QR code not confirmed by user within 30 seconds returns "QR code expired" error
+- **Network Error Handling**: If an actual network error occurs during payment processing, the app displays "Connection lost. Please try again."
 
-These rules help validate merchant input and simulate realistic payment gateway responses.
+The amount validation (£0 and £5000 limit) is enforced entirely on the frontend before any API call is made. QR timeout is the only simulated failure behavior.
 
 ## Known Limitations
 
