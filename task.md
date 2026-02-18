@@ -1,0 +1,3 @@
+### Task: 
+
+Build a clickable POS payment app prototype that shows the main payment flow for a small merchant. This is a UI/UX + basic app logic task, no real payments, no integrations. You can use generic branding, do not use scraping or any external data sources. Design merchant friendly: big buttons, minimal steps, clear errors. Design for merchants and cashiers, debit card and QR payment, transactions overview etc. Need to be simple yet extremely sticky for merchants. I will not provide any further detail, pls make design and flow of the process decisions. 

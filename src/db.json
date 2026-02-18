@@ -1,0 +1,9 @@
+{
+  "merchant": {
+    "id": "m001",
+    "name": "Joes Cafe",
+    "currency": "GBP",
+    "symbol": "£"
+  },
+  "transactions": []
+}
