@@ -122,6 +122,11 @@
 
     <script src="../js/app.js"></script>
     <script>
+      // Session guard
+      if (sessionStorage.getItem("authenticated") !== "true") {
+        window.location.href = "login.html";
+      }
+
       const amount = session.get("pendingAmount");
       const method = session.get("paymentMethod");
 

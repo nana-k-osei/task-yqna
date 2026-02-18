@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimplePOS – Login</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="logo">
+          <span class="logo-name">SimplePOS</span>
+          <span class="logo-merchant merchant-name">Loading...</span>
+        </div>
+      </header>
+
+      <main class="app-main" style="justify-content: center">
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+            text-align: center;
+          "
+        >
+          <div>
+            <p class="page-title">Enter PIN</p>
+            <p class="page-subtitle">
+              4-digit PIN required to access SimplePOS
+            </p>
+          </div>
+
+          <!-- PIN Display -->
+          <div class="login-pin-display">
+            <div class="pin-dots" id="pinDots">
+              <span class="pin-dot"></span>
+              <span class="pin-dot"></span>
+              <span class="pin-dot"></span>
+              <span class="pin-dot"></span>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          <div
+            id="loginError"
+            class="inline-error"
+            style="width: 100%; justify-content: space-between"
+          >
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1">
+              <span id="errorIcon"></span>
+              <span id="errorMsg"></span>
+            </div>
+            <button
+              id="closeErrorBtn"
+              class="error-close-btn"
+              style="display: none"
+              type="button"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Numpad -->
+          <div class="numpad">
+            <button class="numpad-btn" data-val="1">1</button>
+            <button class="numpad-btn" data-val="2">2</button>
+            <button class="numpad-btn" data-val="3">3</button>
+            <button class="numpad-btn" data-val="4">4</button>
+            <button class="numpad-btn" data-val="5">5</button>
+            <button class="numpad-btn" data-val="6">6</button>
+            <button class="numpad-btn" data-val="7">7</button>
+            <button class="numpad-btn" data-val="8">8</button>
+            <button class="numpad-btn" data-val="9">9</button>
+            <button class="numpad-btn zero" data-val="0">0</button>
+            <button
+              class="numpad-btn delete"
+              id="deleteBtn"
+              type="button"
+              title="Delete"
+            ></button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script>
+      // Prevent accessing login if already authenticated
+      if (sessionStorage.getItem("authenticated") === "true") {
+        window.location.href = "../index.html";
+      }
+
+      const CORRECT_PIN = "1234";
+      let enteredPin = "";
+      const errBox = document.getElementById("loginError");
+      const errMsg = document.getElementById("errorMsg");
+      const errIcon = document.getElementById("errorIcon");
+      const deleteBtn = document.getElementById("deleteBtn");
+      const pinDots = document.querySelectorAll(".pin-dot");
+
+      deleteBtn.innerHTML = icons.delete;
+      errIcon.innerHTML = icons.alert;
+
+      function updatePinDisplay() {
+        pinDots.forEach((dot, index) => {
+          if (index < enteredPin.length) {
+            dot.classList.add("filled");
+          } else {
+            dot.classList.remove("filled");
+          }
+        });
+        errBox.classList.remove("visible");
+      }
+
+      document.querySelectorAll(".numpad-btn[data-val]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (enteredPin.length >= 4) return;
+          const val = btn.dataset.val;
+          enteredPin += val;
+          updatePinDisplay();
+
+          // Auto-submit when 4 digits entered
+          if (enteredPin.length === 4) {
+            setTimeout(() => {
+              validatePin();
+            }, 200);
+          }
+        });
+      });
+
+      deleteBtn.addEventListener("click", () => {
+        enteredPin = enteredPin.slice(0, -1);
+        updatePinDisplay();
+      });
+
+      const closeErrorBtn = document.getElementById("closeErrorBtn");
+      let errorTimeout;
+
+      function hideError() {
+        errBox.classList.remove("visible");
+        closeErrorBtn.style.display = "none";
+        enteredPin = "";
+        updatePinDisplay();
+        if (errorTimeout) {
+          clearTimeout(errorTimeout);
+        }
+      }
+
+      closeErrorBtn.addEventListener("click", hideError);
+
+      function validatePin() {
+        if (enteredPin === CORRECT_PIN) {
+          // Success
+          sessionStorage.setItem("authenticated", "true");
+          window.location.href = "../index.html";
+        } else {
+          // Error
+          errMsg.textContent = "Incorrect PIN. Please try again.";
+          errBox.classList.add("visible");
+          closeErrorBtn.style.display = "flex";
+
+          // Auto-dismiss after 3 seconds
+          if (errorTimeout) {
+            clearTimeout(errorTimeout);
+          }
+          errorTimeout = setTimeout(() => {
+            hideError();
+            enteredPin = "";
+            updatePinDisplay();
+          }, 3000);
+        }
+      }
+
+      // Load merchant name
+      loadMerchantHeader();
+    </script>
+  </body>
+</html>

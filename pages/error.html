@@ -112,6 +112,11 @@
 
     <script src="../js/app.js"></script>
     <script>
+      // Session guard
+      if (sessionStorage.getItem("authenticated") !== "true") {
+        window.location.href = "login.html";
+      }
+
       const reason =
         session.get("errorReason") || "The payment could not be completed.";
       const amount = session.get("pendingAmount");
